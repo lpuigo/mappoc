@@ -1,0 +1,5 @@
+.idea/
+*.txt
+*.jpg
+*.json
+Distrib/*
