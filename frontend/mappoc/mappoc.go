@@ -9,8 +9,6 @@ import (
 
 //go:generate bash ./makejs.sh
 
-const MapboxToken string = "pk.eyJ1IjoibGF1cmVudC1wdWlnIiwiYSI6ImNqeDgxazRqYzBmOGEzbnA3Z2lld3Rja2cifQ.Oq6cQfmK3uKYyVQffiIn_Q"
-
 func main() {
 	mpm := NewMainPageModel()
 
@@ -34,6 +32,8 @@ type MainPageModel struct {
 	Longitude float64  `js:"Longitude"`
 	Latitude  float64  `js:"Latitude"`
 
+	Poles []*Pole `js:"Poles"`
+
 	Map *leaflet.Map `js:"Map"`
 }
 
@@ -41,35 +41,68 @@ func NewMainPageModel() *MainPageModel {
 	mpm := &MainPageModel{Object: tools.O()}
 	mpm.Longitude = 1
 	mpm.Latitude = 1
+	mpm.Poles = GenPoles(poles)
 	mpm.Map = nil
 	return mpm
 }
 
 func (mpm *MainPageModel) InitMap() {
-	mpm.Map = leaflet.NewMap("mapEWIN", leaflet.DefaultMapOptions())
+	mapOption := leaflet.DefaultMapOptions()
 
-	tileOption := leaflet.DefaultTileLayerOptions()
+	mpm.Map = leaflet.NewMap("mapEWIN", mapOption)
+	osmlayer := leaflet.OSMTileLayer()
+	satlayer := leaflet.MapBoxTileLayer("mapbox.satellite")
 
-	//tileOption.Attribution = `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`
-	//tileOption.Id = "mapbox.streets"
-	//tileOption.AccesToken = MapboxToken
-	//url := "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}"
-
-	tileOption.Attribution = `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`
-	//tileOption.Id = "mapbox.streets"
-	//tileOption.AccesToken = MapboxToken
-	url := "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-	tile := leaflet.NewTileLayer(url, tileOption)
-	tile.AddTo(mpm.Map)
-
-	for _, pole := range poles {
-		marker := leaflet.NewMarker(pole.Lat, pole.Long)
-		marker.AddTo(mpm.Map)
+	baseMaps := js.M{
+		"Plan":     osmlayer,
+		"Satelite": satlayer,
 	}
-	clat, clong, minlat, minlong, maxlat, maxlong := GetCenterAndBounds(poles)
+
+	osmlayer.AddTo(mpm.Map)
+
+	polesLayer := []*leaflet.Layer{}
+
+	for _, pole := range mpm.Poles {
+		mOption := leaflet.DefaultMarkerOption()
+		mOption.Opacity = 0.7
+		mOption.Title = pole.Ref
+
+		//marker := leaflet.NewMarker(pole.Lat, pole.Long, mOption)
+		marker := NewPoleMarker(pole.Lat, pole.Long, mOption, pole)
+		pole.PoleMarker = marker
+		marker.BindPopup(pole.Ref)
+		marker.On("click", func(o *js.Object) {
+			//print("event :", o)
+			pole := &Pole{Object: o.Get("sourceTarget").Get("Pole")}
+			print("Poteau:", pole.Ref)
+		})
+		polesLayer = append(polesLayer, &marker.Layer)
+	}
+
+	polesGroup := leaflet.NewLayerGroup(polesLayer)
+	polesGroup.AddTo(mpm.Map)
+
+	overlayMaps := js.M{
+		"Poteaux": polesGroup,
+	}
+
+	leaflet.NewControlLayers(baseMaps, overlayMaps).AddTo(mpm.Map)
+
+	clat, clong, minlat, minlong, maxlat, maxlong := GetCenterAndBounds(mpm.Poles)
 	mpm.Latitude, mpm.Longitude = clat, clong
 	mpm.Map.SetView(leaflet.NewLatLng(mpm.Latitude, mpm.Longitude), 3)
 	//mpm.Map.SetZoom(12)
 	mpm.Map.FitBounds(leaflet.NewLatLng(minlat, minlong), leaflet.NewLatLng(maxlat, maxlong))
 
+}
+
+type PoleMarker struct {
+	leaflet.Marker
+	Pole *Pole `js:"Pole"`
+}
+
+func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *Pole) *PoleMarker {
+	np := &PoleMarker{Marker: *leaflet.NewMarker(lat, long, option)}
+	np.Pole = pole
+	return np
 }

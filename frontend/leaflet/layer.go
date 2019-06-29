@@ -46,7 +46,7 @@ func DefaultTileLayerOptions() *TileLayerOptions {
 	}
 }
 
-// Layer is a leaflet layer object: http://leafletjs.com/reference-1.0.2.html#layer.
+// Layer is a leaflet layer object: http://leafletjs.com/reference-1.5.0.html#layer.
 type Layer struct {
 	*js.Object
 }
@@ -54,6 +54,21 @@ type Layer struct {
 // AddTo add the receiver to the specified Map.
 func (l *Layer) AddTo(m *Map) {
 	l.Object.Call("addTo", m)
+}
+
+func (l *Layer) On(event string, handler func(*js.Object)) {
+	l.Call("on", event, handler)
+}
+
+// LayerGroup is a leaflet LayerGroup: https://leafletjs.com/reference-1.5.0.html#layergroup.
+type LayerGroup struct {
+	Layer
+}
+
+func NewLayerGroup(layers []*Layer) *LayerGroup {
+	return &LayerGroup{
+		Layer{Object: L.Call("layerGroup", layers)},
+	}
 }
 
 // GridLayer is a leaflet GridLayer: http://leafletjs.com/reference-1.0.2.html#gridlayer.

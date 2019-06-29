@@ -7,62 +7,26 @@ import "github.com/gopherjs/gopherjs/js"
 // L is the primary leaflet javascript object.
 var L = js.Global.Get("L")
 
-// Path is a leaflet path object: http://leafletjs.com/reference-1.0.2.html#path.
-type Path struct {
-	Layer
+// OSMTileLayer returns OpenStreetMap standard TileLayer
+func OSMTileLayer() *TileLayer {
+	tileOption := DefaultTileLayerOptions()
+	tileOption.Attribution = `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`
+	url := "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+	return NewTileLayer(url, tileOption)
 }
 
-// SetStyle sets the style of the receiver:
-// http://leafletjs.com/reference-1.0.2.html#path-setstyle.
-func (p *Path) SetStyle(style *PathOptions) {
-	p.Object.Call("setStyle", style)
-}
+const MapboxToken string = "pk.eyJ1IjoibGF1cmVudC1wdWlnIiwiYSI6ImNqeDgxazRqYzBmOGEzbnA3Z2lld3Rja2cifQ.Oq6cQfmK3uKYyVQffiIn_Q"
 
-// PathOptions specify the options for a path:
-// http://leafletjs.com/reference-1.0.2.html#path-option.
-// They need to be initialized with DefaultPathOptions.
-type PathOptions struct {
-	Object      *js.Object
-	Stroke      bool    `js:"stroke"`
-	Color       string  `js:"color"`
-	Weight      int     `js:"weight"`
-	Opacity     float64 `js:"opacity"`
-	LineCap     string  `js:"lineCap"`
-	LineJoin    string  `js:"lineJoin"`
-	DashArray   string  `js:"dashArray"`
-	DashOffset  string  `js:"dashOffset"`
-	Fill        bool    `js:"fill"`
-	FillColor   string  `js:"fillColor"`
-	FillOpacity float64 `js:"fillOpacity"`
-	FillRule    string  `js:"fillRule"`
-}
-
-// DefaultPathOptions returns the default TileLayer options.
-func DefaultPathOptions() *PathOptions {
-	return &PathOptions{
-		Object: js.Global.Get("Object").New(),
-	}
-}
-
-// Polyline is a leaflet polyline object: http://leafletjs.com/reference-1.0.2.html#polyline.
-type Polyline struct {
-	Path
-}
-
-// Polygon is a leaflet polygon object: http://leafletjs.com/reference-1.0.2.html#polygon.
-type Polygon struct {
-	Polyline
-}
-
-// NewPolygon creates a new polygon.
-func NewPolygon(latlngs []*LatLng) *Polygon {
-	return &Polygon{
-		Polyline: Polyline{
-			Path: Path{
-				Layer: Layer{
-					Object: L.Call("polygon", latlngs),
-				},
-			},
-		},
-	}
+// MapBoxTileLayer returns mapbox standard TileLayer
+//  mapbox.streets
+//  mapbox.satellite
+//  mapbox.outdoors
+//  mapbox.light
+func MapBoxTileLayer(id string) *TileLayer {
+	tileOption := DefaultTileLayerOptions()
+	tileOption.Attribution = `&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <a href="https://apps.mapbox.com/feedback/">Improve this map</a>`
+	tileOption.Id = id
+	tileOption.AccesToken = MapboxToken
+	url := "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}"
+	return NewTileLayer(url, tileOption)
 }

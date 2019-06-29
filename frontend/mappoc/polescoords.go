@@ -1,28 +1,48 @@
 package main
 
-type Pole struct {
+import (
+	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/ewin/doe/website/frontend/tools"
+)
+
+type BePole struct {
 	Ref  string
 	City string
 	Lat  float64
 	Long float64
 }
 
-//type Pole struct {
-//	*js.Object
-//
-//	Ref  string  `js:"Ref"`
-//	City string  `js:"City"`
-//	Lat  float64 `js:"Lat"`
-//	Long float64 `js:"Long"`
-//}
-//
+type Pole struct {
+	*js.Object
+	Ref        string      `js:"Ref"`
+	City       string      `js:"City"`
+	Lat        float64     `js:"Lat"`
+	Long       float64     `js:"Long"`
+	Done       bool        `js:"Done"`
+	PoleMarker *PoleMarker `js:"PoleMarker"`
+}
 
-func GetCenterAndBounds(poles []Pole) (clat, clong, blat1, blong1, blat2, blong2 float64) {
+func NewPole(pole BePole) *Pole {
+	np := &Pole{
+		Object: tools.O(),
+	}
+
+	np.Ref = pole.Ref
+	np.City = pole.City
+	np.Lat = pole.Lat
+	np.Long = pole.Long
+	np.Done = false
+	np.PoleMarker = nil
+
+	return np
+}
+
+func GetCenterAndBounds(poles []*Pole) (clat, clong, blat1, blong1, blat2, blong2 float64) {
 	if len(poles) == 0 {
 		return 47, 5, 46.5, 4.5, 47.5, 5.5
 	}
 
-	min := func(pole Pole) {
+	min := func(pole *Pole) {
 		if pole.Lat < blat1 {
 			blat1 = pole.Lat
 		}
@@ -31,7 +51,7 @@ func GetCenterAndBounds(poles []Pole) (clat, clong, blat1, blong1, blat2, blong2
 		}
 	}
 
-	max := func(pole Pole) {
+	max := func(pole *Pole) {
 		if pole.Lat > blat2 {
 			blat2 = pole.Lat
 		}
@@ -54,7 +74,16 @@ func GetCenterAndBounds(poles []Pole) (clat, clong, blat1, blong1, blat2, blong2
 	return
 }
 
-var poles = []Pole{
+func GenPoles(poles []BePole) []*Pole {
+	res := make([]*Pole, len(poles))
+
+	for i, pole := range poles {
+		res[i] = NewPole(pole)
+	}
+	return res
+}
+
+var poles = []BePole{
 	//{"MF22A01", "Maizières-lès-Vic", 48.68398083, 6.767729722},
 	//{"MF22A02", "Maizières-lès-Vic", 48.6867125, 6.770223056},
 	//{"MF22A03", "Maizières-lès-Vic", 48.69282139, 6.762173611},
