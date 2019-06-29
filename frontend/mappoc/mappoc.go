@@ -46,8 +46,7 @@ func NewMainPageModel() *MainPageModel {
 }
 
 func (mpm *MainPageModel) InitMap() {
-	mpm.Map = leaflet.NewMap("mapISS", leaflet.DefaultMapOptions())
-	mpm.Map.SetView(leaflet.NewLatLng(mpm.Latitude, mpm.Longitude), 1)
+	mpm.Map = leaflet.NewMap("mapEWIN", leaflet.DefaultMapOptions())
 
 	tileOption := leaflet.DefaultTileLayerOptions()
 
@@ -62,5 +61,15 @@ func (mpm *MainPageModel) InitMap() {
 	url := "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 	tile := leaflet.NewTileLayer(url, tileOption)
 	tile.AddTo(mpm.Map)
+
+	for _, pole := range poles {
+		marker := leaflet.NewMarker(pole.Lat, pole.Long)
+		marker.AddTo(mpm.Map)
+	}
+	clat, clong, minlat, minlong, maxlat, maxlong := GetCenterAndBounds(poles)
+	mpm.Latitude, mpm.Longitude = clat, clong
+	mpm.Map.SetView(leaflet.NewLatLng(mpm.Latitude, mpm.Longitude), 3)
+	//mpm.Map.SetZoom(12)
+	mpm.Map.FitBounds(leaflet.NewLatLng(minlat, minlong), leaflet.NewLatLng(maxlat, maxlong))
 
 }
