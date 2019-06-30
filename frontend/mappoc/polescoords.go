@@ -12,14 +12,23 @@ type BePole struct {
 	Long float64
 }
 
+const (
+	PoleStateNotSubmitted string = "00 Not Submitted"
+	PoleStateToDo         string = "10 To Do"
+	PoleStateHoleDone     string = "20 Hole Done"
+	PoleStateIncident     string = "25 Incident"
+	PoleStateDone         string = "90 Done"
+	PoleStateCancelled    string = "99 Cancelled"
+)
+
 type Pole struct {
 	*js.Object
 	Ref        string      `js:"Ref"`
 	City       string      `js:"City"`
 	Lat        float64     `js:"Lat"`
 	Long       float64     `js:"Long"`
-	Done       bool        `js:"Done"`
 	PoleMarker *PoleMarker `js:"PoleMarker"`
+	State      string      `js:"State"`
 }
 
 func NewPole(pole BePole) *Pole {
@@ -31,10 +40,27 @@ func NewPole(pole BePole) *Pole {
 	np.City = pole.City
 	np.Lat = pole.Lat
 	np.Long = pole.Long
-	np.Done = false
 	np.PoleMarker = nil
+	np.State = PoleStateToDo
 
 	return np
+}
+
+func (p *Pole) SwitchState() {
+	switch p.State {
+	case PoleStateNotSubmitted:
+		p.State = PoleStateToDo
+	case PoleStateToDo:
+		p.State = PoleStateHoleDone
+	case PoleStateHoleDone:
+		p.State = PoleStateIncident
+	case PoleStateIncident:
+		p.State = PoleStateDone
+	case PoleStateDone:
+		p.State = PoleStateCancelled
+	case PoleStateCancelled:
+		p.State = PoleStateNotSubmitted
+	}
 }
 
 func GetCenterAndBounds(poles []*Pole) (clat, clong, blat1, blong1, blat2, blong2 float64) {
@@ -274,10 +300,10 @@ var poles = []BePole{
 	{"MF22999", "Avricourt", 48.64946861, 6.814881389},
 	{"MF22671", "Avricourt", 48.64911028, 6.804318889},
 	{"MF22990", "Moussey", 48.68475333, 6.803333611},
-	//{"MF22841", "Rechicourt-le-Chateau", 48.68892861, 6.803174722},
+	{"MF22841", "Rechicourt-le-Chateau", 48.68892861, 6.803174722},
 	//{"MF22001", "Rechicourt-le-Chateau", 48.6891575, 6.803713611},
-	//{"MF22869", "Rechicourt-le-Chateau", 48.69097972, 6.80856},
-	//{"MF22837", "Rechicourt-le-Chateau", 48.69030694, 6.806426944},
+	{"MF22869", "Rechicourt-le-Chateau", 48.69097972, 6.80856},     // submitted ?
+	{"MF22837", "Rechicourt-le-Chateau", 48.69030694, 6.806426944}, // submitted ?
 	{"MF22002", "Moussey", 48.69043278, 6.805981667},
 	//{"MF22264", "Rechicourt-le-Chateau", 48.6807325, 6.818073333},
 	//{"MF22306", "Rechicourt-le-Chateau", 48.66354556, 6.843489444},

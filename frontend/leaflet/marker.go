@@ -19,13 +19,29 @@ func NewMarker(lat, long float64, option *MarkerOptions) *Marker {
 	}
 }
 
+func MarkerFromJs(o *js.Object) *Marker {
+	return &Marker{
+		Layer: Layer{
+			Object: o,
+		},
+	}
+}
+
 func (m *Marker) BindPopup(content string) {
 	m.Call("bindPopup", content)
 }
 
+func (m *Marker) UpdateDivIconClassname(newclass string) {
+	m.Object.Get("options").Get("icon").Get("options").Set("className", newclass)
+}
+
+func (m *Marker) UpdateDivIconHtml(newhtml string) {
+	m.Object.Get("options").Get("icon").Get("options").Set("html", newhtml)
+}
+
 type MarkerOptions struct {
 	*js.Object
-	//Icon Icon `js:"icon"`
+	Icon                *Icon   `js:"icon"`
 	Keyboard            bool    `js:"keyboard"`
 	Title               string  `js:"title"`
 	Alt                 string  `js:"alt"`
@@ -45,15 +61,39 @@ func DefaultMarkerOption() *MarkerOptions {
 	return &MarkerOptions{Object: tools.O()}
 }
 
-/*
-
-// TODO Implement this
-
+// Icon is a leaflet Icon object: https://leafletjs.com/reference-1.5.0.html#icon.
 type Icon struct {
 	*js.Object
 }
 
-type IconOptions struct {
-	*js.Object
+// DivIcon is a leaflet DivIcon object: https://leafletjs.com/reference-1.5.0.html#divicon.
+type DivIcon struct {
+	Icon
 }
-*/
+
+func NewDivIcon(options *DivIconOptions) *DivIcon {
+	return &DivIcon{
+		Icon: Icon{Object: L.Call("divIcon", options)},
+	}
+}
+
+type DivIconOptions struct {
+	*js.Object
+	Html          string `js:"html"`
+	BgPos         js.S   `js:"bgPos"`
+	IconSize      js.S   `js:"iconSize"`
+	IconAnchor    js.S   `js:"iconAnchor"`
+	PopupAnchor   js.S   `js:"popupAnchor"`
+	TooltipAnchor js.S   `js:"tooltipAnchor"`
+	ClassName     string `js:"className"`
+}
+
+func DefaultDivIconOptions() *DivIconOptions {
+	dio := &DivIconOptions{Object: tools.O()}
+	dio.Html = `<i class="fas fa-map-marker-alt fa-3x"></i>`
+	dio.IconSize = js.S{27, 37}
+	dio.IconAnchor = js.S{13, 37}
+	dio.PopupAnchor = js.S{0, -37}
+	dio.ClassName = ""
+	return dio
+}

@@ -63,18 +63,24 @@ func (mpm *MainPageModel) InitMap() {
 	polesLayer := []*leaflet.Layer{}
 
 	for _, pole := range mpm.Poles {
+		dio := leaflet.DefaultDivIconOptions()
+		ico := leaflet.NewDivIcon(dio)
 		mOption := leaflet.DefaultMarkerOption()
-		mOption.Opacity = 0.7
+		mOption.Icon = &ico.Icon
+		mOption.Opacity = 0.5
 		mOption.Title = pole.Ref
 
 		//marker := leaflet.NewMarker(pole.Lat, pole.Long, mOption)
 		marker := NewPoleMarker(pole.Lat, pole.Long, mOption, pole)
 		pole.PoleMarker = marker
 		marker.BindPopup(pole.Ref)
+		marker.UpdateFromState()
 		marker.On("click", func(o *js.Object) {
 			//print("event :", o)
 			pole := &Pole{Object: o.Get("sourceTarget").Get("Pole")}
-			print("Poteau:", pole.Ref)
+			pole.SwitchState()
+			pole.PoleMarker.UpdateFromState()
+			pole.PoleMarker.Refresh()
 		})
 		polesLayer = append(polesLayer, &marker.Layer)
 	}
@@ -94,15 +100,4 @@ func (mpm *MainPageModel) InitMap() {
 	//mpm.Map.SetZoom(12)
 	mpm.Map.FitBounds(leaflet.NewLatLng(minlat, minlong), leaflet.NewLatLng(maxlat, maxlong))
 
-}
-
-type PoleMarker struct {
-	leaflet.Marker
-	Pole *Pole `js:"Pole"`
-}
-
-func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *Pole) *PoleMarker {
-	np := &PoleMarker{Marker: *leaflet.NewMarker(lat, long, option)}
-	np.Pole = pole
-	return np
 }

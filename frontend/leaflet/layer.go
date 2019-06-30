@@ -56,6 +56,18 @@ func (l *Layer) AddTo(m *Map) {
 	l.Object.Call("addTo", m)
 }
 
+// Remove removes the receiver from its current map.
+func (l *Layer) Remove() {
+	l.Object.Call("remove")
+}
+
+// Refresh refresh the receiver by removing and adding it on its current map.
+func (l *Layer) Refresh() {
+	curMap := &Map{Object: l.Get("_map")}
+	l.Remove()
+	l.AddTo(curMap)
+}
+
 func (l *Layer) On(event string, handler func(*js.Object)) {
 	l.Call("on", event, handler)
 }
