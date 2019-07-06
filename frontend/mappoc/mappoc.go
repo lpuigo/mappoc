@@ -19,8 +19,7 @@ func main() {
 		hvue.Mounted(func(vm *hvue.VM) {
 			mpm := &MainPageModel{Object: vm.Object}
 			mpm.InitMap()
-			//js.Global.Call("confirm", "bonjour bonjour")
-			js.Global.Get("window").Call("addEventListener", "beforeunload", mpm.Leave, false)
+			BeforeUnloadConfirmation(mpm.CanLeave)
 		}),
 	)
 
@@ -50,13 +49,24 @@ func NewMainPageModel() *MainPageModel {
 	return mpm
 }
 
-func (mpm *MainPageModel) Leave(event *js.Object) {
-	if !mpm.ConfirmLeave {
-		return
-	}
-	event.Call("preventDefault")
-	event.Set("returnValue", "")
-	//js.Global.Call("confirm", "Sur ?")
+func (mpm *MainPageModel) CanLeave() bool {
+	return !mpm.ConfirmLeave
+}
+
+func BeforeUnloadConfirmation(canLeave func() bool) {
+	js.Global.Get("window").Call(
+		"addEventListener",
+		"beforeunload",
+		func(event *js.Object) {
+			if canLeave() {
+				return
+			}
+			event.Call("preventDefault")
+			event.Set("returnValue", "")
+			//js.Global.Call("confirm", "Sur ?")
+
+		},
+		false)
 }
 
 func (mpm *MainPageModel) InitMap() {

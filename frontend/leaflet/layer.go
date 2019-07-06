@@ -61,7 +61,7 @@ func (l *Layer) Remove() {
 	l.Object.Call("remove")
 }
 
-// Refresh refresh the receiver by removing and adding it on its current map.
+// Refresh refreshes the receiver by removing and adding it on its current map.
 func (l *Layer) Refresh() {
 	curMap := &Map{Object: l.Get("_map")}
 	l.Remove()
