@@ -22,3 +22,13 @@ func NewControlLayers(baseLayer js.M, overlays js.M) *ControlLayers {
 		Control{L.Get("control").Call("layers", baseLayer, overlays)},
 	}
 }
+
+// AddBaseLayer adds a base layer (radio button entry) with the given name to the control.
+func (cl *ControlLayers) AddBaseLayer(layer *Layer, name string) {
+	cl.Call("addBaseLayer", layer, name)
+}
+
+// AddOverlay adds an overlay (checkbox entry) with the given name to the control.
+func (cl *ControlLayers) AddOverlay(layer *Layer, name string) {
+	cl.Call("addOverlay", layer, name)
+}

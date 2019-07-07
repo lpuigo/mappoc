@@ -15,20 +15,19 @@ const template string = `
 // Comp Registration
 
 func RegisterComponent() hvue.ComponentOption {
-	return hvue.Component("leaflet-map", ComponentOptions()...)
+	return hvue.Component("leaflet-map", componentOptions()...)
 }
 
-func ComponentOptions() []hvue.ComponentOption {
+func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
-		hvue.Props("poles"),
 		hvue.MethodsOf(&LeafletMap{}),
 		//hvue.Computed("progressPct", func(vm *hvue.VM) interface{} {
 		//	wspb := &WorksiteProgressBarModel{Object: vm.Object}
 		//	return wspb.ProgressPct()
 		//}),
 		hvue.Mounted(func(vm *hvue.VM) {
-			llm := newLeafletMap(vm)
+			llm := NewLeafletMap(vm)
 			llm.Init()
 		}),
 	}
@@ -40,12 +39,13 @@ func ComponentOptions() []hvue.ComponentOption {
 type LeafletMap struct {
 	*js.Object
 
-	Map *leaflet.Map `js:"Map"`
+	Map           *leaflet.Map           `js:"Map"`
+	ControlLayers *leaflet.ControlLayers `js:"ControlLayers"`
 
 	VM *hvue.VM `js:"VM"`
 }
 
-func newLeafletMap(vm *hvue.VM) *LeafletMap {
+func NewLeafletMap(vm *hvue.VM) *LeafletMap {
 	llm := &LeafletMap{Object: tools.O()}
 	llm.VM = vm
 	return llm
@@ -63,18 +63,11 @@ func (llm *LeafletMap) Init() {
 		"Plan":      osmlayer,
 		"Satellite": satlayer,
 	}
-
 	osmlayer.AddTo(llm.Map)
 
-	markerLayer := []*leaflet.Layer{}
-	markerGroup := leaflet.NewLayerGroup(markerLayer)
-	markerGroup.AddTo(llm.Map)
-
-	overlayMaps := js.M{
-		"Poteaux": markerGroup,
-	}
-
-	leaflet.NewControlLayers(baseMaps, overlayMaps).AddTo(llm.Map)
+	llm.ControlLayers = leaflet.NewControlLayers(baseMaps, js.M{})
+	llm.ControlLayers.AddTo(llm.Map)
+	llm.SetView(leaflet.NewLatLng(0, 0), 3)
 }
 
 func (llm *LeafletMap) SetView(center *leaflet.LatLng, zoom int) {

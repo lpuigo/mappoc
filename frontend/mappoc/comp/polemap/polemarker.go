@@ -1,13 +1,16 @@
-package main
+package polemap
 
-import "github.com/lpuig/ewin/mappoc/frontend/leaflet"
+import (
+	"github.com/lpuig/ewin/mappoc/frontend/leaflet"
+	"github.com/lpuig/ewin/mappoc/frontend/mappoc/model"
+)
 
 type PoleMarker struct {
 	leaflet.Marker
-	Pole *Pole `js:"Pole"`
+	Pole *model.Pole `js:"Pole"`
 }
 
-func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *Pole) *PoleMarker {
+func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *model.Pole) *PoleMarker {
 	np := &PoleMarker{Marker: *leaflet.NewMarker(lat, long, option)}
 	np.Pole = pole
 	return np
@@ -23,22 +26,22 @@ func (pm *PoleMarker) UpdateFromState() {
 	var html, class string
 
 	switch pm.Pole.State {
-	case PoleStateNotSubmitted:
+	case model.PoleStateNotSubmitted:
 		html = pmHtmlPin
 		class = ""
-	case PoleStateToDo:
+	case model.PoleStateToDo:
 		html = pmHtmlPlain
 		class = "blue"
-	case PoleStateHoleDone:
+	case model.PoleStateHoleDone:
 		html = pmHtmlHole
 		class = "orange"
-	case PoleStateIncident:
+	case model.PoleStateIncident:
 		html = pmHtmlHole
 		class = "red"
-	case PoleStateDone:
+	case model.PoleStateDone:
 		html = pmHtmlPlain
 		class = "green"
-	case PoleStateCancelled:
+	case model.PoleStateCancelled:
 		html = pmHtmlPlain
 		class = ""
 	}

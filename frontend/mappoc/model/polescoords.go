@@ -1,4 +1,4 @@
-package main
+package model
 
 import (
 	"github.com/gopherjs/gopherjs/js"
@@ -23,12 +23,11 @@ const (
 
 type Pole struct {
 	*js.Object
-	Ref        string      `js:"Ref"`
-	City       string      `js:"City"`
-	Lat        float64     `js:"Lat"`
-	Long       float64     `js:"Long"`
-	PoleMarker *PoleMarker `js:"PoleMarker"`
-	State      string      `js:"State"`
+	Ref   string  `js:"Ref"`
+	City  string  `js:"City"`
+	Lat   float64 `js:"Lat"`
+	Long  float64 `js:"Long"`
+	State string  `js:"State"`
 }
 
 func NewPole(pole BePole) *Pole {
@@ -40,7 +39,6 @@ func NewPole(pole BePole) *Pole {
 	np.City = pole.City
 	np.Lat = pole.Lat
 	np.Long = pole.Long
-	np.PoleMarker = nil
 	np.State = PoleStateToDo
 
 	return np
@@ -109,7 +107,7 @@ func GenPoles(poles []BePole) []*Pole {
 	return res
 }
 
-var poles = []BePole{
+var Poles = []BePole{
 	//{"MF22A01", "Maizières-lès-Vic", 48.68398083, 6.767729722},
 	//{"MF22A02", "Maizières-lès-Vic", 48.6867125, 6.770223056},
 	//{"MF22A03", "Maizières-lès-Vic", 48.69282139, 6.762173611},

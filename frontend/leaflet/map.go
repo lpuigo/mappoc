@@ -39,7 +39,7 @@ func (m *Map) SetZoom(zoom int) {
 	m.Object.Call("setZoom", zoom)
 }
 
-// setZoomAround Zooms the map while keeping a specified geographical point on the map stationary (e.g. used internally for scroll zoom and double-click zoom).
+// FitBounds sets a map view that contains the given geographical bounds with the maximum zoom level possible.
 func (m *Map) FitBounds(min, max *LatLng) {
 	m.Object.Call("fitBounds", NewLatLngBounds(min, max))
 }
