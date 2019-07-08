@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/huckridgesw/hvue"
 	"github.com/lpuig/ewin/doe/website/frontend/tools"
@@ -55,11 +53,8 @@ func NewMainPageModel() *MainPageModel {
 }
 
 func (mpm *MainPageModel) LoadPole() {
-	print("LoadPole started", mpm.Object)
-	time.Sleep(3 * time.Second)
 	mpm.Poles = model.GenPoles(model.Poles)
 	mpm.UpdateMap()
-	print("LoadPole done")
 }
 
 func (mpm *MainPageModel) CanLeave() bool {
