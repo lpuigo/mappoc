@@ -29,10 +29,11 @@ func componentOptions() []hvue.ComponentOption {
 		//	return wspb.ProgressPct()
 		//}),
 		hvue.Mounted(func(vm *hvue.VM) {
-			pm := PoleMapFromJS(vm.Object)
-			pm.Init()
-			pm.AddPoles(pm.Poles, "Poteaux")
-			print("polemap mounted", pm.Poles)
+			pm := newPoleMap(vm)
+			pm.VM = vm
+			if len(pm.Poles) > 0 {
+				pm.AddPoles(pm.Poles, "Poteaux")
+			}
 		}),
 		hvue.BeforeUpdate(func(vm *hvue.VM) {
 			pm := PoleMapFromJS(vm.Object)
@@ -51,10 +52,8 @@ func componentOptions() []hvue.ComponentOption {
 
 type PoleMap struct {
 	leafletmap.LeafletMap
-
-	Poles []*model.Pole `js:"poles"`
-
-	VM *hvue.VM `js:"VM"`
+	Poles        []*model.Pole             `js:"poles"`
+	PoleOverlays map[string]*leaflet.Layer `js:"PoleOverlays"`
 }
 
 func PoleMapFromJS(obj *js.Object) *PoleMap {
@@ -62,18 +61,22 @@ func PoleMapFromJS(obj *js.Object) *PoleMap {
 }
 
 func newPoleMap(vm *hvue.VM) *PoleMap {
-	pm := &PoleMap{LeafletMap: *leafletmap.NewLeafletMap(vm)}
-	pm.Poles = nil
-	return pm
-}
-
-func (pm *PoleMap) Init() {
+	pm := PoleMapFromJS(vm.Object)
+	pm.LeafletMap.VM = vm
 	pm.LeafletMap.Init()
 	pm.LeafletMap.SetView(leaflet.NewLatLng(48, 6), 5)
+	pm.Poles = nil
+	pm.PoleOverlays = make(map[string]*leaflet.Layer)
+	return pm
 }
 
 func (pm *PoleMap) AddPoles(poles []*model.Pole, name string) {
 	polesLayer := []*leaflet.Layer{}
+
+	if layer, exist := pm.PoleOverlays[name]; exist {
+		pm.LeafletMap.ControlLayers.RemoveLayer(layer)
+		delete(pm.PoleOverlays, name)
+	}
 
 	for _, pole := range poles {
 		dio := leaflet.DefaultDivIconOptions()
@@ -85,15 +88,11 @@ func (pm *PoleMap) AddPoles(poles []*model.Pole, name string) {
 
 		//poleMarker := leaflet.NewMarker(pole.Lat, pole.Long, mOption)
 		poleMarker := NewPoleMarker(pole.Lat, pole.Long, mOption, pole)
-		poleMarker.BindPopup(pole.Ref)
+		//poleMarker.BindPopup(pole.Ref)
 		poleMarker.UpdateFromState()
 		poleMarker.On("click", func(o *js.Object) {
-			print("event :", o)
-			//mpm.ConfirmLeave = true // todo dependecy injection for dirty control
-			//pole := &model.Pole{Object: o.Get("sourceTarget").Get("Pole")}
-			//pole.SwitchState()
-			//pole.PoleMarker.UpdateFromState()
-			//pole.PoleMarker.Refresh()
+			poleMarker := PoleMarkerFromJS(o.Get("sourceTarget"))
+			pm.VM.Emit("marker-click", poleMarker, o)
 		})
 		polesLayer = append(polesLayer, &poleMarker.Layer)
 	}
@@ -101,6 +100,7 @@ func (pm *PoleMap) AddPoles(poles []*model.Pole, name string) {
 	polesGroup := leaflet.NewLayerGroup(polesLayer)
 	polesGroup.AddTo(pm.LeafletMap.Map)
 	pm.LeafletMap.ControlLayers.AddOverlay(&polesGroup.Layer, name)
+	pm.PoleOverlays[name] = &polesGroup.Layer
 
 	clat, clong, minlat, minlong, maxlat, maxlong := model.GetCenterAndBounds(poles)
 	pm.LeafletMap.Map.SetView(leaflet.NewLatLng(clat, clong), 12)

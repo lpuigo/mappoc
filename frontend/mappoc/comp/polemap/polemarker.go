@@ -1,6 +1,7 @@
 package polemap
 
 import (
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/ewin/mappoc/frontend/leaflet"
 	"github.com/lpuig/ewin/mappoc/frontend/mappoc/model"
 )
@@ -8,6 +9,10 @@ import (
 type PoleMarker struct {
 	leaflet.Marker
 	Pole *model.Pole `js:"Pole"`
+}
+
+func PoleMarkerFromJS(obj *js.Object) *PoleMarker {
+	return &PoleMarker{Marker: *leaflet.MarkerFromJs(obj)}
 }
 
 func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *model.Pole) *PoleMarker {

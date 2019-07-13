@@ -17,7 +17,11 @@
 <div id="mappoc_app" style="height: 100%;">
     <h1>Ewin Poteaux</h1>
     <div style="height: 90vh">
-        <pole-map ref="MapEwin" :poles="Poles"></pole-map>
+        <pole-map
+                ref="MapEwin"
+                :poles="Poles"
+                @marker-click="MarkerClick"
+        ></pole-map>
     </div>
 </div>
 </body>

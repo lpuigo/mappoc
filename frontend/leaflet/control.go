@@ -32,3 +32,8 @@ func (cl *ControlLayers) AddBaseLayer(layer *Layer, name string) {
 func (cl *ControlLayers) AddOverlay(layer *Layer, name string) {
 	cl.Call("addOverlay", layer, name)
 }
+
+// RemoveLayer Remove the given layer from the control.
+func (cl *ControlLayers) RemoveLayer(layer *Layer) {
+	cl.Call("removeLayer", layer)
+}

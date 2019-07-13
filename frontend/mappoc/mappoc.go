@@ -21,9 +21,7 @@ func main() {
 		hvue.Mounted(func(vm *hvue.VM) {
 			mpm := &MainPageModel{Object: vm.Object}
 			mpm.Poles = []*model.Pole{}
-			//mpm.Poles = model.GenPoles(model.Poles)
-			print("main mounted", mpm.Poles, mpm.Object)
-			BeforeUnloadConfirmation(mpm.CanLeave)
+			BeforeUnloadConfirmation(mpm.PreventLeave)
 			go mpm.LoadPole()
 		}),
 	)
@@ -34,11 +32,11 @@ func main() {
 type MainPageModel struct {
 	*js.Object
 
-	VM           *hvue.VM      `js:"VM"`
-	Longitude    float64       `js:"Longitude"`
-	Latitude     float64       `js:"Latitude"`
-	Poles        []*model.Pole `js:"Poles"`
-	ConfirmLeave bool          `js:"ConfirmLeave"`
+	VM        *hvue.VM      `js:"VM"`
+	Longitude float64       `js:"Longitude"`
+	Latitude  float64       `js:"Latitude"`
+	Poles     []*model.Pole `js:"Poles"`
+	Dirty     bool          `js:"Dirty"`
 }
 
 func NewMainPageModel() *MainPageModel {
@@ -47,8 +45,7 @@ func NewMainPageModel() *MainPageModel {
 	mpm.Longitude = 1
 	mpm.Latitude = 1
 	mpm.Poles = []*model.Pole{}
-	//mpm.Poles = model.GenPoles(model.Poles)
-	mpm.ConfirmLeave = false
+	mpm.Dirty = false
 	return mpm
 }
 
@@ -57,16 +54,17 @@ func (mpm *MainPageModel) LoadPole() {
 	mpm.UpdateMap()
 }
 
-func (mpm *MainPageModel) CanLeave() bool {
-	return !mpm.ConfirmLeave
+func (mpm *MainPageModel) PreventLeave() bool {
+	return mpm.Dirty
 }
 
-func BeforeUnloadConfirmation(canLeave func() bool) {
+// BeforeUnloadConfirmation activate confirm leave alert if askBeforeLeave func return true
+func BeforeUnloadConfirmation(askBeforeLeave func() bool) {
 	js.Global.Get("window").Call(
 		"addEventListener",
 		"beforeunload",
 		func(event *js.Object) {
-			if canLeave() {
+			if !askBeforeLeave() {
 				return
 			}
 			event.Call("preventDefault")
@@ -80,4 +78,12 @@ func BeforeUnloadConfirmation(canLeave func() bool) {
 func (mpm *MainPageModel) UpdateMap() {
 	pm := polemap.PoleMapFromJS(mpm.VM.Refs("MapEwin"))
 	pm.AddPoles(mpm.Poles, "Poteaux")
+}
+
+func (mpm *MainPageModel) MarkerClick(poleMarkerObj, event *js.Object) {
+	pm := polemap.PoleMarkerFromJS(poleMarkerObj)
+	pm.Pole.SwitchState()
+	pm.UpdateFromState()
+	pm.Refresh()
+	//print("MarkerClick", event)
 }
