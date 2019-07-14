@@ -14,6 +14,12 @@ func NewLatLng(lat, lng float64) *LatLng {
 	}
 }
 
+func (ll *LatLng) ToFloats() (lat, long float64) {
+	lat = ll.Get("lat").Float()
+	long = ll.Get("lng").Float()
+	return
+}
+
 // LatLng specifies a point in latitude and longitude
 type LatLngBounds struct {
 	*js.Object

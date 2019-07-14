@@ -39,6 +39,18 @@ func (m *Marker) UpdateDivIconHtml(newhtml string) {
 	m.Object.Get("options").Get("icon").Get("options").Set("html", newhtml)
 }
 
+func (m *Marker) UpdateToolTip(text string) {
+	m.Object.Get("options").Set("title", text)
+}
+
+func (m *Marker) SetDraggable(drag bool) {
+	m.Object.Get("options").Set("draggable", drag)
+}
+
+func (m *Marker) SetOpacity(op float64) {
+	m.Object.Get("options").Set("opacity", op)
+}
+
 type MarkerOptions struct {
 	*js.Object
 	Icon                *Icon   `js:"icon"`

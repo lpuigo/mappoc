@@ -68,6 +68,16 @@ func (l *Layer) Refresh() {
 	l.AddTo(curMap)
 }
 
+// Refresh refreshes the receiver by removing and adding it on its current map.
+func (l *Layer) CenterOnMap(zoom int) {
+	curMap := &Map{Object: l.Get("_map")}
+	curMap.SetView(l.GetLatLong(), zoom)
+}
+
+func (l *Layer) GetLatLong() *LatLng {
+	return &LatLng{Object: l.Get("_latlng")}
+}
+
 func (l *Layer) On(event string, handler func(*js.Object)) {
 	l.Call("on", event, handler)
 }
@@ -81,6 +91,10 @@ func NewLayerGroup(layers []*Layer) *LayerGroup {
 	return &LayerGroup{
 		Layer{Object: L.Call("layerGroup", layers)},
 	}
+}
+
+func (lg *LayerGroup) ForEach(f func(l *Layer)) {
+	lg.Call("eachLayer", f)
 }
 
 // GridLayer is a leaflet GridLayer: http://leafletjs.com/reference-1.0.2.html#gridlayer.

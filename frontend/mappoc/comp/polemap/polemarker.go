@@ -11,14 +11,31 @@ type PoleMarker struct {
 	Pole *model.Pole `js:"Pole"`
 }
 
+const (
+	MarkerOpacityDefault  float64 = 0.5
+	MarkerOpacitySelected float64 = 1
+)
+
 func PoleMarkerFromJS(obj *js.Object) *PoleMarker {
 	return &PoleMarker{Marker: *leaflet.MarkerFromJs(obj)}
 }
 
-func NewPoleMarker(lat, long float64, option *leaflet.MarkerOptions, pole *model.Pole) *PoleMarker {
-	np := &PoleMarker{Marker: *leaflet.NewMarker(lat, long, option)}
+func NewPoleMarker(option *leaflet.MarkerOptions, pole *model.Pole) *PoleMarker {
+	np := &PoleMarker{Marker: *leaflet.NewMarker(pole.Lat, pole.Long, option)}
 	np.Pole = pole
 	return np
+}
+
+func (pm *PoleMarker) StartEditMode() {
+	pm.SetOpacity(MarkerOpacitySelected)
+	pm.SetDraggable(true)
+	pm.Refresh()
+}
+
+func (pm *PoleMarker) EndEditMode() {
+	pm.SetOpacity(MarkerOpacityDefault)
+	pm.SetDraggable(false)
+	pm.Refresh()
 }
 
 const (
@@ -53,4 +70,8 @@ func (pm *PoleMarker) UpdateFromState() {
 
 	pm.UpdateDivIconClassname(class)
 	pm.UpdateDivIconHtml(html)
+}
+
+func (pm *PoleMarker) UpdateTitle() {
+	pm.Marker.UpdateToolTip(pm.Pole.Ref)
 }
